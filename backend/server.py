@@ -116,7 +116,7 @@ def prepare_for_mongo(data):
         for key, value in data.items():
             if isinstance(value, datetime):
                 data[key] = value.isoformat()
-            elif isinstance(value, (date, time)):
+            elif isinstance(value, (date_type, time)):
                 data[key] = value.isoformat()
     return data
 
