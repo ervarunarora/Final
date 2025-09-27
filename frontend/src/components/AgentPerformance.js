@@ -1,0 +1,377 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const AgentPerformance = () => {
+  const [agents, setAgents] = useState([]);
+  const [agentPerformance, setAgentPerformance] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    fetchAgents();
+  }, []);
+
+  const fetchAgents = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/agents');
+      setAgents(response.data);
+      
+      // Fetch performance data for each agent
+      const performancePromises = response.data.map(agent => 
+        fetchAgentPerformance(agent.name)
+      );
+      
+      const performanceResults = await Promise.all(performancePromises);
+      const performanceMap = {};
+      response.data.forEach((agent, index) => {
+        performanceMap[agent.name] = performanceResults[index];
+      });
+      
+      setAgentPerformance(performanceMap);
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAgentPerformance = async (agentName) => {
+    try {
+      const response = await axios.get(`/agent-performance/${encodeURIComponent(agentName)}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching performance for ${agentName}:`, error);
+      return {
+        agent_name: agentName,
+        total_tickets: 0,
+        response_sla_percentage: 0,
+        resolution_sla_percentage: 0,
+        avg_response_time: 0,
+        avg_resolution_time: 0
+      };
+    }
+  };
+
+  const getSLAStatusColor = (percentage) => {
+    if (percentage >= 95) return 'excellent';
+    if (percentage >= 85) return 'good';
+    if (percentage >= 70) return 'average';
+    return 'poor';
+  };
+
+  const getSLAStatusLabel = (percentage) => {
+    if (percentage >= 95) return 'Excellent';
+    if (percentage >= 85) return 'Good';
+    if (percentage >= 70) return 'Needs Improvement';
+    return 'Critical';
+  };
+
+  const filteredAgents = agents.filter(agent => 
+    agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    agent.team.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="loading-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <span className="ml-4 text-gray-600">Loading agent performance data...</span>
+      </div>
+    );
+  }
+
+  if (agents.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-6xl mb-4">👤</div>
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">No Agents Found</h2>
+        <p className="text-gray-600">Upload your Excel data first to see individual agent performance</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          Individual Agent Performance
+        </h1>
+        <p className="text-gray-600">
+          Detailed SLA tracking and performance metrics by agent
+        </p>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="max-w-2xl mx-auto">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search agents by name or team..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            data-testid="agent-search"
+          />
+          <div className="absolute left-4 top-3.5 text-gray-400 text-xl">
+            🔍
+          </div>
+        </div>
+      </div>
+
+      {/* Agent Performance Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredAgents.map((agent) => {
+          const performance = agentPerformance[agent.name] || {};
+          const responseSLA = performance.response_sla_percentage || 0;
+          const resolutionSLA = performance.resolution_sla_percentage || 0;
+          
+          return (
+            <div 
+              key={agent.id} 
+              className="performance-card cursor-pointer"
+              onClick={() => setSelectedAgent(agent)}
+              data-testid={`agent-card-${agent.name}`}
+            >
+              {/* Agent Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    {agent.name}
+                  </h3>
+                  <div className="text-sm text-gray-600">
+                    {agent.team}
+                  </div>
+                </div>
+                <div className="text-3xl">👤</div>
+              </div>
+
+              {/* Key Metrics */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Tickets</span>
+                  <span className="text-lg font-bold text-blue-600">
+                    {performance.total_tickets || 0}
+                  </span>
+                </div>
+
+                {/* Response SLA */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-600">Response SLA</span>
+                    <span className="text-sm font-semibold">
+                      {responseSLA.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <div 
+                      className={`progress-fill ${getSLAStatusColor(responseSLA)}`}
+                      style={{ width: `${Math.min(responseSLA, 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {getSLAStatusLabel(responseSLA)}
+                  </div>
+                </div>
+
+                {/* Resolution SLA */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-600">Resolution SLA</span>
+                    <span className="text-sm font-semibold">
+                      {resolutionSLA.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <div 
+                      className={`progress-fill ${getSLAStatusColor(resolutionSLA)}`}
+                      style={{ width: `${Math.min(resolutionSLA, 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {getSLAStatusLabel(resolutionSLA)}
+                  </div>
+                </div>
+
+                {/* Average Times */}
+                <div className="pt-3 border-t border-gray-100">
+                  <div className="flex justify-between text-xs text-gray-600">
+                    <span>Avg Response: {performance.avg_response_time?.toFixed(1) || 0}h</span>
+                    <span>Avg Resolution: {performance.avg_resolution_time?.toFixed(1) || 0}h</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Detailed Agent Modal */}
+      {selectedAgent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    {selectedAgent.name}
+                  </h2>
+                  <div className="text-gray-600">
+                    {selectedAgent.team} • ID: {selectedAgent.employee_id}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedAgent(null)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                  data-testid="close-modal"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Detailed Performance */}
+              <div className="space-y-6">
+                {(() => {
+                  const performance = agentPerformance[selectedAgent.name] || {};
+                  return (
+                    <>
+                      {/* Summary Cards */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <div className="text-2xl font-bold text-blue-600">
+                            {performance.total_tickets || 0}
+                          </div>
+                          <div className="text-sm text-blue-800">Total Tickets</div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-4">
+                          <div className="text-2xl font-bold text-green-600">
+                            {performance.resolution_sla_met || 0}
+                          </div>
+                          <div className="text-sm text-green-800">SLA Met</div>
+                        </div>
+                      </div>
+
+                      {/* SLA Breakdown */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-800">SLA Performance</h3>
+                        
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium">Response SLA</span>
+                            <span className="font-bold">
+                              {(performance.response_sla_percentage || 0).toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="progress-bar mb-2">
+                            <div 
+                              className={`progress-fill ${getSLAStatusColor(performance.response_sla_percentage || 0)}`}
+                              style={{ width: `${Math.min(performance.response_sla_percentage || 0, 100)}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>Met: {performance.response_sla_met || 0}</span>
+                            <span>Breached: {performance.response_sla_breached || 0}</span>
+                          </div>
+                        </div>
+
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium">Resolution SLA</span>
+                            <span className="font-bold">
+                              {(performance.resolution_sla_percentage || 0).toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="progress-bar mb-2">
+                            <div 
+                              className={`progress-fill ${getSLAStatusColor(performance.resolution_sla_percentage || 0)}`}
+                              style={{ width: `${Math.min(performance.resolution_sla_percentage || 0, 100)}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>Met: {performance.resolution_sla_met || 0}</span>
+                            <span>Breached: {performance.resolution_sla_breached || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Average Times */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h4 className="font-medium mb-3">Average Response Times</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="text-lg font-bold text-blue-600">
+                              {(performance.avg_response_time || 0).toFixed(1)}h
+                            </div>
+                            <div className="text-sm text-gray-600">Response Time</div>
+                          </div>
+                          <div>
+                            <div className="text-lg font-bold text-green-600">
+                              {(performance.avg_resolution_time || 0).toFixed(1)}h
+                            </div>
+                            <div className="text-sm text-gray-600">Resolution Time</div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Summary Statistics */}
+      {filteredAgents.length > 0 && (
+        <div className="performance-card">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">
+            📊 Summary Statistics ({filteredAgents.length} agents)
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {filteredAgents.reduce((sum, agent) => 
+                  sum + (agentPerformance[agent.name]?.total_tickets || 0), 0
+                ).toLocaleString()}
+              </div>
+              <div className="text-sm text-gray-600">Total Tickets</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {filteredAgents.length > 0 ? (
+                  (filteredAgents.reduce((sum, agent) => 
+                    sum + (agentPerformance[agent.name]?.response_sla_percentage || 0), 0
+                  ) / filteredAgents.length).toFixed(1)
+                ) : 0}%
+              </div>
+              <div className="text-sm text-gray-600">Avg Response SLA</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {filteredAgents.length > 0 ? (
+                  (filteredAgents.reduce((sum, agent) => 
+                    sum + (agentPerformance[agent.name]?.resolution_sla_percentage || 0), 0
+                  ) / filteredAgents.length).toFixed(1)
+                ) : 0}%
+              </div>
+              <div className="text-sm text-gray-600">Avg Resolution SLA</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                {filteredAgents.filter(agent => 
+                  (agentPerformance[agent.name]?.resolution_sla_percentage || 0) >= 95
+                ).length}
+              </div>
+              <div className="text-sm text-gray-600">Top Performers</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AgentPerformance;
