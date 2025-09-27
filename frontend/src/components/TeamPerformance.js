@@ -175,7 +175,7 @@ const TeamPerformance = () => {
                   <div className="text-4xl">{getTeamIcon(team.team_name)}</div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-800">
-                      {team.team_name}
+                      {team.team_name || 'All Teams'}
                     </h3>
                     <div className="text-sm text-gray-600">
                       Rank #{index + 1} • {team.total_tickets || 0} tickets
