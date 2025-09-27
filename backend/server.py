@@ -89,7 +89,7 @@ class SLAMetrics(BaseModel):
     avg_resolution_time: Optional[float] = None
     response_sla_percentage: float = 0.0
     resolution_sla_percentage: float = 0.0
-    date: date = Field(default_factory=date.today)
+    date: date_type = Field(default_factory=date_type.today)
 
 class DashboardSummary(BaseModel):
     total_tickets: int = 0
