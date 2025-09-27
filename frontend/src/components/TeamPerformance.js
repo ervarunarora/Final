@@ -39,6 +39,7 @@ const TeamPerformance = () => {
   };
 
   const getTeamIcon = (teamName) => {
+    if (!teamName) return '👥';
     if (teamName.toLowerCase().includes('business')) return '💼';
     if (teamName.toLowerCase().includes('functional')) return '⚙️';
     if (teamName.toLowerCase().includes('technical')) return '🔧';
