@@ -436,8 +436,8 @@ async def get_team_performance():
                 "total_tickets": team["total_tickets"],
                 "response_sla_percentage": round(team.get("response_sla_percentage", 0), 2),
                 "resolution_sla_percentage": round(team.get("resolution_sla_percentage", 0), 2),
-                "avg_response_time": round(team.get("avg_response_time", 0), 2),
-                "avg_resolution_time": round(team.get("avg_resolution_time", 0), 2)
+                "avg_response_time": round(team.get("avg_response_time") or 0, 2),
+                "avg_resolution_time": round(team.get("avg_resolution_time") or 0, 2)
             })
         
         return team_performance
