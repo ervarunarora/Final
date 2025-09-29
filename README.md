@@ -75,13 +75,19 @@ uvicorn server:app --reload --host 0.0.0.0 --port 8001
 # Navigate to frontend directory (from root)
 cd frontend
 
-# Install Node.js dependencies
+# Install Node.js dependencies (Node.js 20.18.0 compatible)
 npm install
-# or if you prefer yarn:
-yarn install
 
 # Start the React development server
 npm start
+```
+
+**Note:** If you encounter any dependency errors after cloning, run:
+```bash
+# Clean install
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
 ```
 
 ### 4. Database Setup
