@@ -44,10 +44,10 @@ const Dashboard = ({ data, loading }) => {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
           Help Center SLA Dashboard
         </h1>
-        <p className="text-gray-600">
+        <p className="text-sm md:text-base text-gray-600">
           Real-time individual and team performance tracking
         </p>
       </div>
