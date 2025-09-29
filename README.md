@@ -230,42 +230,51 @@ npm install
 
 ## 🚀 Production Deployment
 
-### Using Docker (Recommended)
+### Using Docker (Recommended - Node.js 20.18.0)
 
-Create `docker-compose.yml`:
+The project includes production-ready Docker configurations:
 
-```yaml
-version: '3.8'
-services:
-  mongodb:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
+**Production Deployment:**
+```bash
+# Build and start all services
+docker-compose up -d
 
-  backend:
-    build: ./backend
-    ports:
-      - "8001:8001"
-    depends_on:
-      - mongodb
-    environment:
-      - MONGO_URL=mongodb://mongodb:27017
+# View logs
+docker-compose logs -f
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-
-volumes:
-  mongodb_data:
+# Stop services
+docker-compose down
 ```
 
+**Development with Hot Reload:**
 ```bash
-docker-compose up -d
+# Start development environment
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# View development logs
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f frontend
+```
+
+**Services:**
+- **Frontend**: http://localhost:3000 (Node.js 20.18.0)
+- **Backend**: http://localhost:8001 (Python 3.11)
+- **MongoDB**: localhost:27017
+
+### Manual Production Setup
+
+**Frontend (Node.js 20.18.0):**
+```bash
+cd frontend
+npm ci --only=production
+npm run build
+# Serve with nginx or serve -s build
+```
+
+**Backend:**
+```bash
+cd backend
+pip install -r requirements.txt
+gunicorn server:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8001
 ```
 
 ## 📝 Sample Data
