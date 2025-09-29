@@ -18,9 +18,9 @@ A comprehensive dashboard for tracking individual and team SLA performance in he
 
 ### Prerequisites
 
-- **Node.js** (v16 or higher)
-- **Python** (v3.8 or higher)
-- **MongoDB** (v4.4 or higher)
+- **Node.js** (v20.18.0 or higher) - *Recommended: Use Node.js 20.18.0 LTS*
+- **Python** (v3.9 or higher)
+- **MongoDB** (v5.0 or higher)
 - **Git**
 
 ### 1. Clone the Repository
