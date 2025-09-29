@@ -30,6 +30,23 @@ git clone <your-repository-url>
 cd sla-tracker-dashboard
 ```
 
+### 1.1. Setup Node.js Version (Recommended)
+
+**Using NVM (Node Version Manager):**
+```bash
+# Install/use Node.js 20.18.0
+nvm install 20.18.0
+nvm use 20.18.0
+
+# Verify version
+node --version  # Should show v20.18.0
+npm --version   # Should show 10.x.x or higher
+```
+
+**Alternative: Direct Installation**
+- Download Node.js 20.18.0 LTS from [nodejs.org](https://nodejs.org/)
+- The project includes `.nvmrc` files for automatic version detection
+
 ### 2. Backend Setup
 
 ```bash
