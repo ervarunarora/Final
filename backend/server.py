@@ -355,14 +355,19 @@ async def get_dashboard_summary():
             ]
         })
         
-        # Get top performers (agents with highest resolution SLA)
+        # Get top performers (balanced score: ticket volume + SLA performance)
         pipeline = [
             {"$match": {"resolved_by": {"$ne": None, "$ne": ""}}},
             {
                 "$group": {
                     "_id": "$resolved_by",
                     "total_tickets": {"$sum": 1},
-                    "sla_met": {
+                    "response_sla_met": {
+                        "$sum": {
+                            "$cond": [{"$eq": ["$response_sla_status", "Met"]}, 1, 0]
+                        }
+                    },
+                    "resolution_sla_met": {
                         "$sum": {
                             "$cond": [{"$eq": ["$resolution_sla_status", "Met"]}, 1, 0]
                         }
@@ -373,25 +378,68 @@ async def get_dashboard_summary():
                 "$project": {
                     "agent_name": "$_id",
                     "total_tickets": 1,
-                    "sla_percentage": {
+                    "response_sla_percentage": {
                         "$multiply": [
-                            {"$divide": ["$sla_met", "$total_tickets"]},
+                            {"$divide": ["$response_sla_met", "$total_tickets"]},
+                            100
+                        ]
+                    },
+                    "resolution_sla_percentage": {
+                        "$multiply": [
+                            {"$divide": ["$resolution_sla_met", "$total_tickets"]},
                             100
                         ]
                     }
                 }
             },
-            {"$sort": {"sla_percentage": -1}},
+            {
+                "$addFields": {
+                    # Performance Score: (Resolution SLA * 0.6) + (Response SLA * 0.4) + (Ticket Volume Bonus)
+                    # Minimum 5 tickets to qualify, bonus points for higher volume
+                    "performance_score": {
+                        "$cond": {
+                            "if": {"$gte": ["$total_tickets", 5]},
+                            "then": {
+                                "$add": [
+                                    # SLA Score (60% resolution + 40% response)
+                                    {
+                                        "$add": [
+                                            {"$multiply": ["$resolution_sla_percentage", 0.6]},
+                                            {"$multiply": ["$response_sla_percentage", 0.4]}
+                                        ]
+                                    },
+                                    # Volume bonus: 1 point per ticket above 5, capped at 20 bonus points
+                                    {
+                                        "$min": [
+                                            {"$subtract": ["$total_tickets", 5]},
+                                            20
+                                        ]
+                                    }
+                                ]
+                            },
+                            "else": 0
+                        }
+                    }
+                }
+            },
+            {"$match": {"performance_score": {"$gt": 0}}},  # Only include agents with 5+ tickets
+            {"$sort": {"performance_score": -1}},
             {"$limit": 5}
         ]
         
         top_performers_cursor = db.tickets.aggregate(pipeline)
         top_performers = []
         async for performer in top_performers_cursor:
+            # Calculate overall SLA (average of response and resolution)
+            overall_sla = (performer["response_sla_percentage"] + performer["resolution_sla_percentage"]) / 2
+            
             top_performers.append({
                 "agent_name": performer["agent_name"],
                 "total_tickets": performer["total_tickets"],
-                "sla_percentage": round(performer["sla_percentage"], 2)
+                "response_sla_percentage": round(performer["response_sla_percentage"], 2),
+                "resolution_sla_percentage": round(performer["resolution_sla_percentage"], 2),
+                "overall_sla_percentage": round(overall_sla, 2),
+                "performance_score": round(performer["performance_score"], 2)
             })
         
         return DashboardSummary(
