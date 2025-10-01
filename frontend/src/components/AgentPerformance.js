@@ -176,20 +176,103 @@ const AgentPerformance = () => {
         </p>
       </div>
 
-      {/* Search and Filters */}
-      <div className="max-w-2xl mx-auto">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search agents by name or team..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            data-testid="agent-search"
-          />
-          <div className="absolute left-4 top-3.5 text-gray-400 text-xl">
-            🔍
+      {/* Search, Filters, and Controls */}
+      <div className="space-y-6">
+        {/* Search Bar */}
+        <div className="max-w-2xl mx-auto">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search agents by name or team..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              data-testid="agent-search"
+            />
+            <div className="absolute left-4 top-3.5 text-gray-400 text-xl">
+              🔍
+            </div>
           </div>
+        </div>
+
+        {/* Filters and Sort Controls */}
+        <div className="flex flex-wrap gap-4 items-center justify-center">
+          {/* Team Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">Team:</span>
+            <select
+              value={filterByTeam}
+              onChange={(e) => setFilterByTeam(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              data-testid="team-filter"
+            >
+              <option value="all">All Teams</option>
+              {uniqueTeams.map(team => (
+                <option key={team} value={team}>{team}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort Controls */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              data-testid="sort-select"
+            >
+              <option value="total_tickets">Tickets Solved</option>
+              <option value="response_sla">Response SLA %</option>
+              <option value="resolution_sla">Resolution SLA %</option>
+              <option value="team">Team</option>
+              <option value="name">Agent Name</option>
+              <option value="avg_response_time">Avg Response Time</option>
+              <option value="avg_resolution_time">Avg Resolution Time</option>
+            </select>
+          </div>
+
+          {/* Sort Order */}
+          <button
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2"
+            data-testid="sort-order"
+          >
+            {sortOrder === 'asc' ? '↑ Ascending' : '↓ Descending'}
+          </button>
+
+          {/* View Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setView('cards')}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                view === 'cards' 
+                  ? 'bg-white text-blue-600 shadow' 
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+              data-testid="view-cards"
+            >
+              📊 Cards
+            </button>
+            <button
+              onClick={() => setView('table')}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                view === 'table' 
+                  ? 'bg-white text-blue-600 shadow' 
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+              data-testid="view-table"
+            >
+              📋 Table
+            </button>
+          </div>
+        </div>
+
+        {/* Results Count */}
+        <div className="text-center text-sm text-gray-600">
+          Showing {filteredAndSortedAgents.length} of {agents.length} agents
+          {filterByTeam !== 'all' && ` in ${filterByTeam}`}
+          {searchTerm && ` matching "${searchTerm}"`}
         </div>
       </div>
 
