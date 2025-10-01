@@ -190,15 +190,26 @@ async def process_excel_data(file_content: bytes, filename: str):
                 'updated_team': str(row.get('Updated Team', '')) if pd.notna(row.get('Updated Team')) else None,
             }
             
-            # Parse time and numeric fields
-            for field, col_name in [
+            # Parse time fields (hh:mm format) and numeric fields
+            time_fields = [
                 ('response_time_hours', 'Response Time (hh:mm)'),
-                ('resolution_time_hours', 'Resolution Time (hh:mm)'),
+                ('resolution_time_hours', 'Resolution Time (hh:mm)')
+            ]
+            
+            numeric_fields = [
                 ('if_breached_response_hrs', 'If Breached - Response (hrs)'),
                 ('if_breached_resolution_hrs', 'If Breached - Resolution (hrs)'),
                 ('life_cycle_target_hrs', 'Life Cycle Target (hrs)'),
                 ('total_time_taken_hrs', 'Total Time Taken (hrs)')
-            ]:
+            ]
+            
+            # Parse time fields using special parser
+            for field, col_name in time_fields:
+                val = row.get(col_name)
+                ticket_data[field] = parse_time_to_hours(val)
+            
+            # Parse numeric fields
+            for field, col_name in numeric_fields:
                 try:
                     val = row.get(col_name)
                     if pd.notna(val) and val != '':
