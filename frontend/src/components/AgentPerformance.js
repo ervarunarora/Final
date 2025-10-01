@@ -361,8 +361,168 @@ const AgentPerformance = () => {
               </div>
             </div>
           );
-        })}
-      </div>
+          })}
+        </div>
+      ) : (
+        /* Table View */
+        <div className="performance-card overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th 
+                  className="text-left py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort('name')}
+                  data-testid="sort-name"
+                >
+                  Agent Name {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  className="text-left py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort('team')}
+                  data-testid="sort-team"
+                >
+                  Team {sortBy === 'team' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  className="text-center py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort('total_tickets')}
+                  data-testid="sort-tickets"
+                >
+                  Tickets Solved {sortBy === 'total_tickets' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  className="text-center py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort('response_sla')}
+                  data-testid="sort-response"
+                >
+                  Response SLA {sortBy === 'response_sla' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  className="text-center py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort('resolution_sla')}
+                  data-testid="sort-resolution"
+                >
+                  Resolution SLA {sortBy === 'resolution_sla' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  className="text-center py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort('avg_response_time')}
+                >
+                  Avg Response {sortBy === 'avg_response_time' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  className="text-center py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort('avg_resolution_time')}
+                >
+                  Avg Resolution {sortBy === 'avg_resolution_time' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAndSortedAgents.map((agent, index) => {
+                const performance = agentPerformance[agent.name] || {};
+                const responseSLA = performance.response_sla_percentage || 0;
+                const resolutionSLA = performance.resolution_sla_percentage || 0;
+                
+                return (
+                  <tr 
+                    key={agent.id} 
+                    className={`border-b border-gray-100 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}
+                  >
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm">
+                          {agent.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-800">{agent.name}</div>
+                          <div className="text-xs text-gray-500">{agent.employee_id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${ 
+                        agent.team === 'Technical Team' ? 'bg-blue-100 text-blue-800' :
+                        agent.team === 'Business Team' ? 'bg-green-100 text-green-800' :
+                        agent.team === 'Functional Team' ? 'bg-purple-100 text-purple-800' :
+                        agent.team === 'Data Team' ? 'bg-orange-100 text-orange-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {agent.team || 'Unknown'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className="font-bold text-blue-600">
+                        {performance.total_tickets || 0}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className={`font-semibold ${
+                          responseSLA >= 95 ? 'text-green-600' :
+                          responseSLA >= 85 ? 'text-blue-600' :
+                          responseSLA >= 70 ? 'text-orange-600' : 'text-red-600'
+                        }`}>
+                          {responseSLA.toFixed(1)}%
+                        </span>
+                        <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full ${getSLAStatusColor(responseSLA)}`}
+                            style={{ width: `${Math.min(responseSLA, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className={`font-semibold ${
+                          resolutionSLA >= 95 ? 'text-green-600' :
+                          resolutionSLA >= 85 ? 'text-blue-600' :
+                          resolutionSLA >= 70 ? 'text-orange-600' : 'text-red-600'
+                        }`}>
+                          {resolutionSLA.toFixed(1)}%
+                        </span>
+                        <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full ${getSLAStatusColor(resolutionSLA)}`}
+                            style={{ width: `${Math.min(resolutionSLA, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-center text-sm text-gray-600">
+                      {(performance.avg_response_time || 0).toFixed(1)}h
+                    </td>
+                    <td className="py-3 px-4 text-center text-sm text-gray-600">
+                      {(performance.avg_resolution_time || 0).toFixed(1)}h
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <button
+                        onClick={() => setSelectedAgent(agent)}
+                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                        data-testid={`view-agent-${agent.name}`}
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {filteredAndSortedAgents.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-4xl mb-2">🔍</div>
+              <div className="text-lg font-medium">No agents found</div>
+              <div className="text-sm">Try adjusting your search or filters</div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Detailed Agent Modal */}
       {selectedAgent && (
