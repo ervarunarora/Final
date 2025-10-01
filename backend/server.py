@@ -489,9 +489,9 @@ async def get_dashboard_summary():
             total_tickets=total_tickets,
             tickets_closed_today=tickets_closed_today,
             tickets_open=tickets_open,
+            l1_pending=l1_pending,
+            l2_pending=l2_pending,
             business_pending=business_pending,
-            functional_pending=l2_pending,  # Using L2 for functional_pending field
-            dealer_pending=l1_pending,     # Using L1 for dealer_pending field
             overall_response_sla=round(overall_response_sla, 2),
             overall_resolution_sla=round(overall_resolution_sla, 2),
             top_performers=top_performers,
