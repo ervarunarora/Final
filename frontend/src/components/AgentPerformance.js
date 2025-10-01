@@ -276,9 +276,10 @@ const AgentPerformance = () => {
         </div>
       </div>
 
-      {/* Agent Performance Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAgents.map((agent) => {
+      {/* Agent Performance Display */}
+      {view === 'cards' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAndSortedAgents.map((agent) => {
           const performance = agentPerformance[agent.name] || {};
           const responseSLA = performance.response_sla_percentage || 0;
           const resolutionSLA = performance.resolution_sla_percentage || 0;
