@@ -380,6 +380,7 @@ const Dashboard = ({ data, loading }) => {
                   <div>• <strong>SLA Score:</strong> Resolution SLA (60%) + Response SLA (40%)</div>
                   <div>• <strong>Volume Bonus:</strong> +1 point per ticket above 5 <span className="hidden sm:inline">(max +20 points)</span></div>
                   <div>• <strong>Minimum:</strong> Must have resolved at least 5 tickets</div>
+                  <div>• <strong>Tiebreaker:</strong> When scores are equal, higher ticket volume ranks first</div>
                   <div className="hidden sm:block">• <strong>Result:</strong> Balanced ranking of productivity and quality</div>
                 </div>
               </div>
