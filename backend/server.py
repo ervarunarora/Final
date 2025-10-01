@@ -533,13 +533,31 @@ async def get_agent_performance(agent_name: str):
 
 @api_router.get("/team-performance")
 async def get_team_performance():
-    """Get performance metrics grouped by team"""
+    """Get performance metrics grouped by team (L1, L2, Business Team)"""
     try:
+        # Get all tickets and process team data
         pipeline = [
-            {"$match": {"updated_resolved_by_team": {"$ne": None, "$ne": ""}}},
+            {
+                "$addFields": {
+                    # Ensure we have a team for every ticket, default to L1
+                    "team": {
+                        "$cond": {
+                            "if": {
+                                "$or": [
+                                    {"$eq": ["$updated_team", None]}, 
+                                    {"$eq": ["$updated_team", ""]},
+                                    {"$eq": ["$updated_team", "null"]}
+                                ]
+                            },
+                            "then": "L1",
+                            "else": "$updated_team"
+                        }
+                    }
+                }
+            },
             {
                 "$group": {
-                    "_id": "$updated_resolved_by_team",
+                    "_id": "$team",
                     "total_tickets": {"$sum": 1},
                     "response_sla_met": {
                         "$sum": {
@@ -551,14 +569,28 @@ async def get_team_performance():
                             "$cond": [{"$eq": ["$resolution_sla_status", "Met"]}, 1, 0]
                         }
                     },
-                    "avg_response_time": {"$avg": "$response_time_hours"},
-                    "avg_resolution_time": {"$avg": "$resolution_time_hours"}
+                    "response_sla_breached": {
+                        "$sum": {
+                            "$cond": [{"$eq": ["$response_sla_status", "Breached"]}, 1, 0]
+                        }
+                    },
+                    "resolution_sla_breached": {
+                        "$sum": {
+                            "$cond": [{"$eq": ["$resolution_sla_status", "Breached"]}, 1, 0]
+                        }
+                    },
+                    "response_times": {"$push": "$response_time_hours"},
+                    "resolution_times": {"$push": "$resolution_time_hours"}
                 }
             },
             {
                 "$project": {
                     "team_name": "$_id",
                     "total_tickets": 1,
+                    "response_sla_met": 1,
+                    "resolution_sla_met": 1,
+                    "response_sla_breached": 1,
+                    "resolution_sla_breached": 1,
                     "response_sla_percentage": {
                         "$multiply": [
                             {"$divide": ["$response_sla_met", "$total_tickets"]},
@@ -571,11 +603,53 @@ async def get_team_performance():
                             100
                         ]
                     },
-                    "avg_response_time": 1,
-                    "avg_resolution_time": 1
+                    # Calculate averages by filtering out null values
+                    "avg_response_time": {
+                        "$cond": {
+                            "if": {"$gt": [{"$size": {"$filter": {"input": "$response_times", "cond": {"$ne": ["$$this", None]}}}}, 0]},
+                            "then": {
+                                "$avg": {
+                                    "$filter": {
+                                        "input": "$response_times",
+                                        "cond": {"$ne": ["$$this", None]}
+                                    }
+                                }
+                            },
+                            "else": 0
+                        }
+                    },
+                    "avg_resolution_time": {
+                        "$cond": {
+                            "if": {"$gt": [{"$size": {"$filter": {"input": "$resolution_times", "cond": {"$ne": ["$$this", None]}}}}, 0]},
+                            "then": {
+                                "$avg": {
+                                    "$filter": {
+                                        "input": "$resolution_times", 
+                                        "cond": {"$ne": ["$$this", None]}
+                                    }
+                                }
+                            },
+                            "else": 0
+                        }
+                    }
                 }
             },
-            {"$sort": {"resolution_sla_percentage": -1}}
+            # Sort by team priority: L1, L2, Business Team, Others
+            {
+                "$addFields": {
+                    "sort_priority": {
+                        "$switch": {
+                            "branches": [
+                                {"case": {"$eq": ["$team_name", "L1"]}, "then": 1},
+                                {"case": {"$eq": ["$team_name", "L2"]}, "then": 2},
+                                {"case": {"$eq": ["$team_name", "Business Team"]}, "then": 3}
+                            ],
+                            "default": 4
+                        }
+                    }
+                }
+            },
+            {"$sort": {"sort_priority": 1, "resolution_sla_percentage": -1}}
         ]
         
         team_performance_cursor = db.tickets.aggregate(pipeline)
@@ -584,10 +658,14 @@ async def get_team_performance():
             team_performance.append({
                 "team_name": team["team_name"],
                 "total_tickets": team["total_tickets"],
+                "response_sla_met": team["response_sla_met"],
+                "response_sla_breached": team["response_sla_breached"],
+                "resolution_sla_met": team["resolution_sla_met"],
+                "resolution_sla_breached": team["resolution_sla_breached"],
                 "response_sla_percentage": round(team.get("response_sla_percentage", 0), 2),
                 "resolution_sla_percentage": round(team.get("resolution_sla_percentage", 0), 2),
-                "avg_response_time": round(team.get("avg_response_time") or 0, 2),
-                "avg_resolution_time": round(team.get("avg_resolution_time") or 0, 2)
+                "avg_response_time": round(team.get("avg_response_time", 0), 2),
+                "avg_resolution_time": round(team.get("avg_resolution_time", 0), 2)
             })
         
         return team_performance
