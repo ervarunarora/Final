@@ -129,20 +129,22 @@ def parse_from_mongo(item):
             pass
     return item
 
-def parse_time_to_hours(time_str):
-    """Convert time string in format 'hh:mm' or decimal to hours"""
-    if pd.isna(time_str) or time_str == '' or time_str is None:
+def parse_time_to_hours(time_val):
+    """Convert Excel time value (decimal days) to hours"""
+    if pd.isna(time_val) or time_val == '' or time_val is None:
         return None
     
     try:
-        # If it's already a number, return it
-        if isinstance(time_str, (int, float)):
-            return float(time_str)
+        # If it's a number (Excel decimal format where 1.0 = 1 day)
+        if isinstance(time_val, (int, float)):
+            # Convert days to hours (1 day = 24 hours)
+            hours = float(time_val) * 24.0
+            return round(hours, 2)
         
         # Convert to string and clean
-        time_str = str(time_str).strip()
+        time_str = str(time_val).strip()
         
-        # If it contains ':', parse as hh:mm
+        # If it contains ':', parse as hh:mm format
         if ':' in time_str:
             parts = time_str.split(':')
             if len(parts) == 2:
@@ -150,8 +152,10 @@ def parse_time_to_hours(time_str):
                 minutes = int(parts[1])
                 return hours + (minutes / 60.0)
         
-        # Try to parse as decimal
-        return float(time_str)
+        # Try to parse as decimal (Excel format)
+        decimal_days = float(time_str)
+        hours = decimal_days * 24.0
+        return round(hours, 2)
         
     except (ValueError, TypeError):
         return None
