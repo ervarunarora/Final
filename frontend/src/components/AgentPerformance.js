@@ -641,47 +641,85 @@ const AgentPerformance = () => {
       )}
 
       {/* Summary Statistics */}
-      {filteredAgents.length > 0 && (
+      {filteredAndSortedAgents.length > 0 && (
         <div className="performance-card">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">
-            📊 Summary Statistics ({filteredAgents.length} agents)
+          <h3 className="text-xl font-bold text-gray-800 mb-6">
+            📊 Summary Statistics ({filteredAndSortedAgents.length} agents)
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {filteredAgents.reduce((sum, agent) => 
+                {filteredAndSortedAgents.reduce((sum, agent) => 
                   sum + (agentPerformance[agent.name]?.total_tickets || 0), 0
                 ).toLocaleString()}
               </div>
-              <div className="text-sm text-gray-600">Total Tickets</div>
+              <div className="text-sm text-blue-800 font-medium">Total Tickets Solved</div>
             </div>
-            <div className="text-center">
+            <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {filteredAgents.length > 0 ? (
-                  (filteredAgents.reduce((sum, agent) => 
+                {filteredAndSortedAgents.length > 0 ? (
+                  (filteredAndSortedAgents.reduce((sum, agent) => 
                     sum + (agentPerformance[agent.name]?.response_sla_percentage || 0), 0
-                  ) / filteredAgents.length).toFixed(1)
+                  ) / filteredAndSortedAgents.length).toFixed(1)
                 ) : 0}%
               </div>
-              <div className="text-sm text-gray-600">Avg Response SLA</div>
+              <div className="text-sm text-green-800 font-medium">Avg Response SLA</div>
             </div>
-            <div className="text-center">
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
-                {filteredAgents.length > 0 ? (
-                  (filteredAgents.reduce((sum, agent) => 
+                {filteredAndSortedAgents.length > 0 ? (
+                  (filteredAndSortedAgents.reduce((sum, agent) => 
                     sum + (agentPerformance[agent.name]?.resolution_sla_percentage || 0), 0
-                  ) / filteredAgents.length).toFixed(1)
+                  ) / filteredAndSortedAgents.length).toFixed(1)
                 ) : 0}%
               </div>
-              <div className="text-sm text-gray-600">Avg Resolution SLA</div>
+              <div className="text-sm text-purple-800 font-medium">Avg Resolution SLA</div>
             </div>
-            <div className="text-center">
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
               <div className="text-2xl font-bold text-orange-600">
-                {filteredAgents.filter(agent => 
+                {filteredAndSortedAgents.filter(agent => 
                   (agentPerformance[agent.name]?.resolution_sla_percentage || 0) >= 95
                 ).length}
               </div>
-              <div className="text-sm text-gray-600">Top Performers</div>
+              <div className="text-sm text-orange-800 font-medium">Top Performers (95%+)</div>
+            </div>
+          </div>
+          
+          {/* Additional Team Breakdown */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h4 className="text-lg font-semibold text-gray-700 mb-4">Performance by Team</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {uniqueTeams.map(team => {
+                const teamAgents = filteredAndSortedAgents.filter(agent => agent.team === team);
+                const teamAvgResponse = teamAgents.length > 0 ? 
+                  (teamAgents.reduce((sum, agent) => 
+                    sum + (agentPerformance[agent.name]?.response_sla_percentage || 0), 0
+                  ) / teamAgents.length) : 0;
+                const teamAvgResolution = teamAgents.length > 0 ?
+                  (teamAgents.reduce((sum, agent) => 
+                    sum + (agentPerformance[agent.name]?.resolution_sla_percentage || 0), 0
+                  ) / teamAgents.length) : 0;
+
+                return (
+                  <div key={team} className="bg-gray-50 rounded-lg p-4">
+                    <h5 className="font-semibold text-gray-800 mb-2">{team}</h5>
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span>Agents:</span>
+                        <span className="font-medium">{teamAgents.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Response SLA:</span>
+                        <span className="font-medium">{teamAvgResponse.toFixed(1)}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Resolution SLA:</span>
+                        <span className="font-medium">{teamAvgResolution.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
