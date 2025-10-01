@@ -343,10 +343,10 @@ async def get_dashboard_summary():
         tickets_closed_today = await db.tickets.count_documents({"status": "Resolved"})
         tickets_open = await db.tickets.count_documents({"status": {"$ne": "Resolved"}})
         
-        # Get pending tickets by team (L1, L2, Business Team) with "Open" status
+        # Get pending tickets by team (L1, L2, Business Team) - any non-resolved status
         # Using aggregation to handle team normalization like in team performance
         pending_pipeline = [
-            {"$match": {"status": "Open"}},  # Only count tickets with "Open" status
+            {"$match": {"status": {"$ne": "Resolved"}}},  # Count tickets that are NOT resolved
             {
                 "$addFields": {
                     # Normalize team names same as team performance
