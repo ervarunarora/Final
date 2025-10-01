@@ -129,6 +129,33 @@ def parse_from_mongo(item):
             pass
     return item
 
+def parse_time_to_hours(time_str):
+    """Convert time string in format 'hh:mm' or decimal to hours"""
+    if pd.isna(time_str) or time_str == '' or time_str is None:
+        return None
+    
+    try:
+        # If it's already a number, return it
+        if isinstance(time_str, (int, float)):
+            return float(time_str)
+        
+        # Convert to string and clean
+        time_str = str(time_str).strip()
+        
+        # If it contains ':', parse as hh:mm
+        if ':' in time_str:
+            parts = time_str.split(':')
+            if len(parts) == 2:
+                hours = int(parts[0])
+                minutes = int(parts[1])
+                return hours + (minutes / 60.0)
+        
+        # Try to parse as decimal
+        return float(time_str)
+        
+    except (ValueError, TypeError):
+        return None
+
 async def process_excel_data(file_content: bytes, filename: str):
     """Process uploaded Excel file and extract ticket data"""
     try:
