@@ -72,10 +72,78 @@ const AgentPerformance = () => {
     return 'Critical';
   };
 
-  const filteredAgents = agents.filter(agent => 
-    agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    agent.team.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique teams for filter dropdown
+  const uniqueTeams = [...new Set(agents.map(agent => agent.team).filter(Boolean))];
+
+  // Sorting and filtering logic
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
+
+  // Enhanced filtering and sorting
+  const filteredAndSortedAgents = agents
+    .filter(agent => {
+      const matchesSearch = 
+        agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (agent.team && agent.team.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const matchesTeam = filterByTeam === 'all' || agent.team === filterByTeam;
+      
+      return matchesSearch && matchesTeam;
+    })
+    .sort((a, b) => {
+      const aPerformance = agentPerformance[a.name] || {};
+      const bPerformance = agentPerformance[b.name] || {};
+      
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case 'total_tickets':
+          aValue = aPerformance.total_tickets || 0;
+          bValue = bPerformance.total_tickets || 0;
+          break;
+        case 'response_sla':
+          aValue = aPerformance.response_sla_percentage || 0;
+          bValue = bPerformance.response_sla_percentage || 0;
+          break;
+        case 'resolution_sla':
+          aValue = aPerformance.resolution_sla_percentage || 0;
+          bValue = bPerformance.resolution_sla_percentage || 0;
+          break;
+        case 'team':
+          aValue = a.team || '';
+          bValue = b.team || '';
+          break;
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'avg_response_time':
+          aValue = aPerformance.avg_response_time || 0;
+          bValue = bPerformance.avg_response_time || 0;
+          break;
+        case 'avg_resolution_time':
+          aValue = aPerformance.avg_resolution_time || 0;
+          bValue = bPerformance.avg_resolution_time || 0;
+          break;
+        default:
+          aValue = aPerformance.total_tickets || 0;
+          bValue = bPerformance.total_tickets || 0;
+      }
+      
+      if (typeof aValue === 'string') {
+        return sortOrder === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      
+      return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+    });
 
   if (loading) {
     return (
