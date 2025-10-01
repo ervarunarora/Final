@@ -95,9 +95,9 @@ class DashboardSummary(BaseModel):
     total_tickets: int = 0
     tickets_closed_today: int = 0
     tickets_open: int = 0
+    l1_pending: int = 0
+    l2_pending: int = 0
     business_pending: int = 0
-    functional_pending: int = 0
-    dealer_pending: int = 0
     overall_response_sla: float = 0.0
     overall_resolution_sla: float = 0.0
     top_performers: List[Dict[str, Any]] = []
