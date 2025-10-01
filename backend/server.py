@@ -130,11 +130,18 @@ def parse_from_mongo(item):
     return item
 
 def parse_time_to_hours(time_val):
-    """Convert Excel time value (decimal days) to hours"""
+    """Convert Excel time value to hours"""
     if pd.isna(time_val) or time_val == '' or time_val is None:
         return None
     
     try:
+        # Handle pandas Timedelta objects
+        if hasattr(time_val, 'total_seconds'):
+            # Convert timedelta to hours
+            total_seconds = time_val.total_seconds()
+            hours = total_seconds / 3600.0
+            return round(hours, 2)
+        
         # If it's a number (Excel decimal format where 1.0 = 1 day)
         if isinstance(time_val, (int, float)):
             # Convert days to hours (1 day = 24 hours)
@@ -144,20 +151,51 @@ def parse_time_to_hours(time_val):
         # Convert to string and clean
         time_str = str(time_val).strip()
         
-        # If it contains ':', parse as hh:mm format
-        if ':' in time_str:
+        # Handle pandas timedelta string format like "1 days 05:28:00" or "0 days 00:01:00"
+        if 'days' in time_str and ':' in time_str:
+            parts = time_str.split(' ')
+            days = 0
+            time_part = time_str
+            
+            # Extract days if present
+            for i, part in enumerate(parts):
+                if part == 'days' and i > 0:
+                    days = int(parts[i-1])
+                    # Get the time part after "days"
+                    time_part = ' '.join(parts[i+1:]).strip()
+                    break
+                elif part == 'day' and i > 0:  # Handle singular "day"
+                    days = int(parts[i-1])
+                    time_part = ' '.join(parts[i+1:]).strip()
+                    break
+            
+            # Parse the time part (HH:MM:SS)
+            time_parts = time_part.split(':')
+            if len(time_parts) >= 2:
+                hours = int(time_parts[0])
+                minutes = int(time_parts[1])
+                seconds = int(time_parts[2]) if len(time_parts) > 2 else 0
+                
+                # Convert everything to hours
+                total_hours = (days * 24) + hours + (minutes / 60.0) + (seconds / 3600.0)
+                return round(total_hours, 2)
+        
+        # If it contains ':', parse as HH:MM or HH:MM:SS format
+        elif ':' in time_str:
             parts = time_str.split(':')
-            if len(parts) == 2:
+            if len(parts) >= 2:
                 hours = int(parts[0])
                 minutes = int(parts[1])
-                return hours + (minutes / 60.0)
+                seconds = int(parts[2]) if len(parts) > 2 else 0
+                total_hours = hours + (minutes / 60.0) + (seconds / 3600.0)
+                return round(total_hours, 2)
         
         # Try to parse as decimal (Excel format)
         decimal_days = float(time_str)
         hours = decimal_days * 24.0
         return round(hours, 2)
         
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, AttributeError):
         return None
 
 async def process_excel_data(file_content: bytes, filename: str):
