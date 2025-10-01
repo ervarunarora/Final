@@ -163,9 +163,9 @@ async def process_excel_data(file_content: bytes, filename: str):
                 'updated_team': str(row.get('Updated Team', '')) if pd.notna(row.get('Updated Team')) else None,
             }
             
-            # Parse numeric fields
+            # Parse time and numeric fields
             for field, col_name in [
-                ('response_time_hours', 'Adherence Response Time (hh:mm)'),
+                ('response_time_hours', 'Response Time (hh:mm)'),
                 ('resolution_time_hours', 'Resolution Time (hh:mm)'),
                 ('if_breached_response_hrs', 'If Breached - Response (hrs)'),
                 ('if_breached_resolution_hrs', 'If Breached - Resolution (hrs)'),
