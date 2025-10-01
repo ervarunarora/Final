@@ -7,6 +7,10 @@ const AgentPerformance = () => {
   const [loading, setLoading] = useState(true);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('total_tickets');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [filterByTeam, setFilterByTeam] = useState('all');
+  const [view, setView] = useState('cards'); // 'cards' or 'table'
 
   useEffect(() => {
     fetchAgents();
