@@ -215,7 +215,12 @@ async def process_excel_data(file_content: bytes, filename: str):
             # Parse time fields using special parser
             for field, col_name in time_fields:
                 val = row.get(col_name)
-                ticket_data[field] = parse_time_to_hours(val)
+                parsed_hours = parse_time_to_hours(val)
+                ticket_data[field] = parsed_hours
+                
+                # Debug: Print first few rows of time data
+                if tickets_processed < 3:
+                    print(f"DEBUG: {col_name} = '{val}' -> {parsed_hours} hours")
             
             # Parse numeric fields
             for field, col_name in numeric_fields:
