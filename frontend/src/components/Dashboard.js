@@ -173,7 +173,7 @@ const Dashboard = ({ data, loading }) => {
               {data.l1_pending || 0}
             </div>
             <div className="text-lg font-semibold text-green-800 mb-1">L1 Team</div>
-            <div className="text-sm text-green-600">Open tickets</div>
+            <div className="text-sm text-green-600">Pending tickets</div>
             <div className="mt-2 w-full bg-green-200 rounded-full h-2">
               <div 
                 className="bg-green-500 h-2 rounded-full transition-all duration-500"
