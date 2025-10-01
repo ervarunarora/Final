@@ -169,6 +169,11 @@ async def process_excel_data(file_content: bytes, filename: str):
         # Clean column names
         df.columns = df.columns.str.strip()
         
+        # Debug: Print column names to see what we have
+        print("DEBUG: Excel columns found:")
+        for i, col in enumerate(df.columns):
+            print(f"  {i}: '{col}'")
+        
         tickets_processed = 0
         agents_set = set()
         
