@@ -289,11 +289,11 @@ async def process_excel_data(file_content: bytes, filename: str):
             await db.tickets.insert_one(ticket_dict)
             tickets_processed += 1
             
-            # Collect agent information
+            # Collect agent information using the normalized team names
             if ticket.resolved_by:
-                agents_set.add((ticket.resolved_by, ticket.updated_resolved_by_team or 'Unknown'))
+                agents_set.add((ticket.resolved_by, ticket.updated_team or 'L1'))
             if ticket.assigned:
-                agents_set.add((ticket.assigned, ticket.updated_team or 'Unknown'))
+                agents_set.add((ticket.assigned, ticket.updated_team or 'L1'))
         
         # Create agents if they don't exist
         agents_created = 0
