@@ -234,6 +234,23 @@ async def process_excel_data(file_content: bytes, filename: str):
                 'updated_team': str(row.get('Updated Team', '')) if pd.notna(row.get('Updated Team')) else None,
             }
             
+            # Normalize and default team assignment
+            updated_team = ticket_data['updated_team']
+            if not updated_team or updated_team in ['', 'None', 'null']:
+                ticket_data['updated_team'] = 'L1'  # Default to L1 if no team data
+            else:
+                # Normalize team names
+                updated_team = updated_team.strip()
+                if updated_team.upper() in ['L1', 'LEVEL 1', 'LEVEL1', 'TIER 1', 'TIER1']:
+                    ticket_data['updated_team'] = 'L1'
+                elif updated_team.upper() in ['L2', 'LEVEL 2', 'LEVEL2', 'TIER 2', 'TIER2']:
+                    ticket_data['updated_team'] = 'L2'
+                elif updated_team.upper() in ['BUSINESS', 'BUSINESS TEAM', 'BT']:
+                    ticket_data['updated_team'] = 'Business Team'
+                else:
+                    # Keep original team name but clean it
+                    ticket_data['updated_team'] = updated_team
+            
             # Parse time fields (hh:mm format) and numeric fields
             time_fields = [
                 ('response_time_hours', 'Response Time (hh:mm)'),
