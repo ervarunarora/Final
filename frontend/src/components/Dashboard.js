@@ -165,7 +165,7 @@ const Dashboard = ({ data, loading }) => {
           Open Tickets Breakdown by Team
         </h3>
         <div className="text-sm text-gray-600 mb-4">
-          Tickets with "Open" status segregated by team assignment
+          Non-resolved tickets (open/pending) segregated by team assignment
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-6 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors">
