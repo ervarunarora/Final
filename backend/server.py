@@ -343,19 +343,45 @@ async def get_dashboard_summary():
         tickets_closed_today = await db.tickets.count_documents({"status": "Resolved"})
         tickets_open = await db.tickets.count_documents({"status": {"$ne": "Resolved"}})
         
-        # Get pending tickets by team type
-        business_pending = await db.tickets.count_documents({
-            "updated_resolved_by_team": "Business Team",
-            "status": {"$ne": "Resolved"}
-        })
-        functional_pending = await db.tickets.count_documents({
-            "updated_resolved_by_team": "Functional Team",
-            "status": {"$ne": "Resolved"}
-        })
-        dealer_pending = await db.tickets.count_documents({
-            "updated_resolved_by_team": "Data Team",
-            "status": {"$ne": "Resolved"}
-        })
+        # Get pending tickets by team (L1, L2, Business Team) with "Open" status
+        # Using aggregation to handle team normalization like in team performance
+        pending_pipeline = [
+            {"$match": {"status": "Open"}},  # Only count tickets with "Open" status
+            {
+                "$addFields": {
+                    # Normalize team names same as team performance
+                    "team": {
+                        "$cond": {
+                            "if": {
+                                "$or": [
+                                    {"$eq": ["$updated_team", None]}, 
+                                    {"$eq": ["$updated_team", ""]},
+                                    {"$eq": ["$updated_team", "null"]}
+                                ]
+                            },
+                            "then": "L1",
+                            "else": "$updated_team"
+                        }
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$team",
+                    "pending_count": {"$sum": 1}
+                }
+            }
+        ]
+        
+        pending_cursor = db.tickets.aggregate(pending_pipeline)
+        pending_by_team = {}
+        async for result in pending_cursor:
+            pending_by_team[result["_id"]] = result["pending_count"]
+        
+        # Extract counts for each team (default to 0 if not found)
+        l1_pending = pending_by_team.get("L1", 0)
+        l2_pending = pending_by_team.get("L2", 0)  
+        business_pending = pending_by_team.get("Business Team", 0)
         
         # Calculate overall SLA percentages
         response_sla_met = await db.tickets.count_documents({"response_sla_status": "Met"})
