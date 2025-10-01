@@ -213,7 +213,7 @@ const Dashboard = ({ data, loading }) => {
               {data.business_pending || 0}
             </div>
             <div className="text-lg font-semibold text-purple-800 mb-1">Business Team</div>
-            <div className="text-sm text-purple-600">Open tickets</div>
+            <div className="text-sm text-purple-600">Pending tickets</div>
             <div className="mt-2 w-full bg-purple-200 rounded-full h-2">
               <div 
                 className="bg-purple-500 h-2 rounded-full transition-all duration-500"
