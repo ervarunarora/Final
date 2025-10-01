@@ -162,29 +162,83 @@ const Dashboard = ({ data, loading }) => {
       <div className="performance-card" data-testid="pending-breakdown-card">
         <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
           <span className="text-2xl">📋</span>
-          Pending Tickets Breakdown
+          Open Tickets Breakdown by Team
         </h3>
+        <div className="text-sm text-gray-600 mb-4">
+          Tickets with "Open" status segregated by team assignment
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600 mb-2">
+          <div className="text-center p-6 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors">
+            <div className="text-3xl font-bold text-green-600 mb-2">
+              {data.l1_pending || 0}
+            </div>
+            <div className="text-lg font-semibold text-green-800 mb-1">L1 Team</div>
+            <div className="text-sm text-green-600">Open tickets</div>
+            <div className="mt-2 w-full bg-green-200 rounded-full h-2">
+              <div 
+                className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${Math.min((data.l1_pending || 0) / Math.max(data.tickets_open || 1, 1) * 100, 100)}%` 
+                }}
+              ></div>
+            </div>
+            <div className="text-xs text-green-600 mt-1">
+              {data.tickets_open > 0 ? 
+                Math.round((data.l1_pending || 0) / data.tickets_open * 100) : 0}% of total open
+            </div>
+          </div>
+          
+          <div className="text-center p-6 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors">
+            <div className="text-3xl font-bold text-blue-600 mb-2">
+              {data.l2_pending || 0}
+            </div>
+            <div className="text-lg font-semibold text-blue-800 mb-1">L2 Team</div>
+            <div className="text-sm text-blue-600">Open tickets</div>
+            <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
+              <div 
+                className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${Math.min((data.l2_pending || 0) / Math.max(data.tickets_open || 1, 1) * 100, 100)}%` 
+                }}
+              ></div>
+            </div>
+            <div className="text-xs text-blue-600 mt-1">
+              {data.tickets_open > 0 ? 
+                Math.round((data.l2_pending || 0) / data.tickets_open * 100) : 0}% of total open
+            </div>
+          </div>
+          
+          <div className="text-center p-6 bg-purple-50 rounded-lg border border-purple-200 hover:bg-purple-100 transition-colors">
+            <div className="text-3xl font-bold text-purple-600 mb-2">
               {data.business_pending || 0}
             </div>
-            <div className="text-sm font-medium text-blue-800">Business Team</div>
-            <div className="text-xs text-blue-600 mt-1">Pending tickets</div>
-          </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600 mb-2">
-              {data.functional_pending || 0}
+            <div className="text-lg font-semibold text-purple-800 mb-1">Business Team</div>
+            <div className="text-sm text-purple-600">Open tickets</div>
+            <div className="mt-2 w-full bg-purple-200 rounded-full h-2">
+              <div 
+                className="bg-purple-500 h-2 rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${Math.min((data.business_pending || 0) / Math.max(data.tickets_open || 1, 1) * 100, 100)}%` 
+                }}
+              ></div>
             </div>
-            <div className="text-sm font-medium text-purple-800">Functional Team</div>
-            <div className="text-xs text-purple-600 mt-1">Pending tickets</div>
-          </div>
-          <div className="text-center p-4 bg-orange-50 rounded-lg">
-            <div className="text-2xl font-bold text-orange-600 mb-2">
-              {data.dealer_pending || 0}
+            <div className="text-xs text-purple-600 mt-1">
+              {data.tickets_open > 0 ? 
+                Math.round((data.business_pending || 0) / data.tickets_open * 100) : 0}% of total open
             </div>
-            <div className="text-sm font-medium text-orange-800">Dealer/Data Team</div>
-            <div className="text-xs text-orange-600 mt-1">Pending tickets</div>
+          </div>
+        </div>
+        
+        {/* Summary Row */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex justify-between items-center text-sm">
+            <span className="font-medium text-gray-700">Total Open Tickets:</span>
+            <span className="font-bold text-gray-800 text-lg">
+              {(data.l1_pending || 0) + (data.l2_pending || 0) + (data.business_pending || 0)}
+            </span>
+          </div>
+          <div className="text-xs text-gray-600 mt-1">
+            Distribution: L1 ({data.l1_pending || 0}), L2 ({data.l2_pending || 0}), Business ({data.business_pending || 0})
           </div>
         </div>
       </div>
