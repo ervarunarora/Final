@@ -194,36 +194,67 @@ const Dashboard = ({ data, loading }) => {
         <div className="performance-card" data-testid="top-performers-card">
           <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
             <span className="text-2xl">🏆</span>
-            Top Performers (Resolution SLA)
+            Top Performers (Balanced Score: Volume + SLA Performance)
           </h3>
+          <div className="text-sm text-gray-600 mb-4">
+            Ranked by performance score: SLA compliance + ticket volume (minimum 5 tickets)
+          </div>
           <div className="space-y-4">
             {data.top_performers.map((performer, index) => (
-              <div key={performer.agent_name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div key={performer.agent_name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                    index === 0 ? 'bg-yellow-500' : 
-                    index === 1 ? 'bg-gray-400' : 
-                    index === 2 ? 'bg-orange-600' : 'bg-blue-500'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+                    index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                    index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                    index === 2 ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 'bg-gradient-to-r from-blue-500 to-blue-600'
                   }`}>
                     {index + 1}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-800">
+                    <div className="font-semibold text-gray-800 text-lg">
                       {performer.agent_name}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {performer.total_tickets} tickets resolved
+                      <span className="font-medium">{performer.total_tickets}</span> tickets resolved
+                    </div>
+                    <div className="flex gap-3 text-xs text-gray-500 mt-1">
+                      <span>Response: <span className="font-medium">{performer.response_sla_percentage || 0}%</span></span>
+                      <span>Resolution: <span className="font-medium">{performer.resolution_sla_percentage || 0}%</span></span>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold text-green-600">
-                    {performer.sla_percentage}%
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <div className="text-lg font-bold text-green-600">
+                        {performer.overall_sla_percentage || performer.sla_percentage || 0}%
+                      </div>
+                      <div className="text-xs text-gray-500">Overall SLA</div>
+                    </div>
+                    <div className="border-l pl-3">
+                      <div className="text-lg font-bold text-blue-600">
+                        {performer.performance_score || 0}
+                      </div>
+                      <div className="text-xs text-gray-500">Score</div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500">SLA Success Rate</div>
                 </div>
               </div>
             ))}
+          </div>
+          
+          {/* Performance Score Explanation */}
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+              <span>📊</span>
+              How Performance Score is Calculated
+            </h4>
+            <div className="text-sm text-blue-800 space-y-1">
+              <div>• <strong>SLA Score:</strong> Resolution SLA (60%) + Response SLA (40%)</div>
+              <div>• <strong>Volume Bonus:</strong> +1 point per ticket above 5 (max +20 points)</div>
+              <div>• <strong>Minimum Requirement:</strong> Must have resolved at least 5 tickets</div>
+              <div>• <strong>Result:</strong> Balanced ranking of productivity and quality</div>
+            </div>
           </div>
         </div>
       )}
