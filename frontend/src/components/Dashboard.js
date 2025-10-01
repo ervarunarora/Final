@@ -192,50 +192,113 @@ const Dashboard = ({ data, loading }) => {
       {/* Top Performers */}
       {data.top_performers && data.top_performers.length > 0 && (
         <div className="performance-card" data-testid="top-performers-card">
-          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <span className="text-2xl">🏆</span>
-            Top Performers (Balanced Score: Volume + SLA Performance)
-          </h3>
-          <div className="text-sm text-gray-600 mb-4">
-            Ranked by performance score: SLA compliance + ticket volume (minimum 5 tickets)
+          {/* Header - Responsive */}
+          <div className="mb-4 md:mb-6">
+            <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <span className="text-xl md:text-2xl">🏆</span>
+              <span className="hidden sm:inline">Top Performers (Balanced Score: Volume + SLA Performance)</span>
+              <span className="sm:hidden">Top Performers</span>
+            </h3>
+            <div className="text-xs md:text-sm text-gray-600">
+              <span className="hidden sm:inline">Ranked by performance score: SLA compliance + ticket volume (minimum 5 tickets)</span>
+              <span className="sm:hidden">Volume + SLA performance (min. 5 tickets)</span>
+            </div>
           </div>
-          <div className="space-y-4">
+
+          {/* Performers List - Mobile Responsive */}
+          <div className="space-y-3 md:space-y-4">
             {data.top_performers.map((performer, index) => (
-              <div key={performer.agent_name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg ${
-                    index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
-                    index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
-                    index === 2 ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 'bg-gradient-to-r from-blue-500 to-blue-600'
-                  }`}>
-                    {index + 1}
+              <div key={performer.agent_name} className="bg-gray-50 rounded-lg p-3 md:p-4 hover:bg-gray-100 transition-colors">
+                
+                {/* Desktop Layout */}
+                <div className="hidden md:flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+                      index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                      index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                      index === 2 ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-800 text-lg">
+                        {performer.agent_name}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <span className="font-medium">{performer.total_tickets}</span> tickets resolved
+                      </div>
+                      <div className="flex gap-3 text-xs text-gray-500 mt-1">
+                        <span>Response: <span className="font-medium">{performer.response_sla_percentage || 0}%</span></span>
+                        <span>Resolution: <span className="font-medium">{performer.resolution_sla_percentage || 0}%</span></span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-gray-800 text-lg">
-                      {performer.agent_name}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      <span className="font-medium">{performer.total_tickets}</span> tickets resolved
-                    </div>
-                    <div className="flex gap-3 text-xs text-gray-500 mt-1">
-                      <span>Response: <span className="font-medium">{performer.response_sla_percentage || 0}%</span></span>
-                      <span>Resolution: <span className="font-medium">{performer.resolution_sla_percentage || 0}%</span></span>
+                  <div className="text-right">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className="text-lg font-bold text-green-600">
+                          {performer.overall_sla_percentage || performer.sla_percentage || 0}%
+                        </div>
+                        <div className="text-xs text-gray-500">Overall SLA</div>
+                      </div>
+                      <div className="border-l pl-3">
+                        <div className="text-lg font-bold text-blue-600">
+                          {performer.performance_score || 0}
+                        </div>
+                        <div className="text-xs text-gray-500">Score</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="text-lg font-bold text-green-600">
-                        {performer.overall_sla_percentage || performer.sla_percentage || 0}%
+
+                {/* Mobile Layout */}
+                <div className="md:hidden">
+                  {/* Header Row */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                        index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                        index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                        index === 2 ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                      }`}>
+                        {index + 1}
                       </div>
-                      <div className="text-xs text-gray-500">Overall SLA</div>
+                      <div>
+                        <div className="font-semibold text-gray-800">
+                          {performer.agent_name}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          <span className="font-medium">{performer.total_tickets}</span> tickets
+                        </div>
+                      </div>
                     </div>
-                    <div className="border-l pl-3">
+                    <div className="text-right">
                       <div className="text-lg font-bold text-blue-600">
                         {performer.performance_score || 0}
                       </div>
                       <div className="text-xs text-gray-500">Score</div>
+                    </div>
+                  </div>
+                  
+                  {/* Metrics Row */}
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-white rounded-lg p-2">
+                      <div className="text-sm font-bold text-blue-600">
+                        {performer.response_sla_percentage || 0}%
+                      </div>
+                      <div className="text-xs text-gray-500">Response</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-2">
+                      <div className="text-sm font-bold text-green-600">
+                        {performer.resolution_sla_percentage || 0}%
+                      </div>
+                      <div className="text-xs text-gray-500">Resolution</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-2">
+                      <div className="text-sm font-bold text-purple-600">
+                        {performer.overall_sla_percentage || performer.sla_percentage || 0}%
+                      </div>
+                      <div className="text-xs text-gray-500">Overall</div>
                     </div>
                   </div>
                 </div>
@@ -243,18 +306,30 @@ const Dashboard = ({ data, loading }) => {
             ))}
           </div>
           
-          {/* Performance Score Explanation */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-              <span>📊</span>
-              How Performance Score is Calculated
-            </h4>
-            <div className="text-sm text-blue-800 space-y-1">
-              <div>• <strong>SLA Score:</strong> Resolution SLA (60%) + Response SLA (40%)</div>
-              <div>• <strong>Volume Bonus:</strong> +1 point per ticket above 5 (max +20 points)</div>
-              <div>• <strong>Minimum Requirement:</strong> Must have resolved at least 5 tickets</div>
-              <div>• <strong>Result:</strong> Balanced ranking of productivity and quality</div>
-            </div>
+          {/* Performance Score Explanation - Collapsible on Mobile */}
+          <div className="mt-4 md:mt-6">
+            <details className="md:open">
+              <summary className="md:hidden cursor-pointer p-3 bg-blue-50 rounded-lg border border-blue-200 font-semibold text-blue-900 flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <span>📊</span>
+                  How Scoring Works
+                </span>
+                <span className="text-blue-600">▼</span>
+              </summary>
+              
+              <div className="mt-3 md:mt-0 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="hidden md:flex font-semibold text-blue-900 mb-2 items-center gap-2">
+                  <span>📊</span>
+                  How Performance Score is Calculated
+                </h4>
+                <div className="text-xs md:text-sm text-blue-800 space-y-1">
+                  <div>• <strong>SLA Score:</strong> Resolution SLA (60%) + Response SLA (40%)</div>
+                  <div>• <strong>Volume Bonus:</strong> +1 point per ticket above 5 <span className="hidden sm:inline">(max +20 points)</span></div>
+                  <div>• <strong>Minimum:</strong> Must have resolved at least 5 tickets</div>
+                  <div className="hidden sm:block">• <strong>Result:</strong> Balanced ranking of productivity and quality</div>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       )}
