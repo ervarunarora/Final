@@ -466,7 +466,7 @@ async def get_dashboard_summary():
                 }
             },
             {"$match": {"performance_score": {"$gt": 0}}},  # Only include agents with 5+ tickets
-            {"$sort": {"performance_score": -1}},
+            {"$sort": {"performance_score": -1, "total_tickets": -1}},  # Primary: score, Tiebreaker: ticket volume
             {"$limit": 5}
         ]
         
