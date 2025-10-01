@@ -757,23 +757,26 @@ async def clear_all_data():
 async def create_test_pending_tickets():
     """Create some test pending tickets for demonstration - useful for testing"""
     try:
-        # Update some resolved tickets to have pending status for demo
+        # Update some resolved tickets to have pending status for demo (using find and limit)
+        l1_tickets = await db.tickets.find({"updated_team": "L1"}).limit(5).to_list(5)
+        l1_ids = [t["_id"] for t in l1_tickets]
         result = await db.tickets.update_many(
-            {"updated_team": "L1"}, 
-            {"$set": {"status": "Open"}}, 
-            limit=5
+            {"_id": {"$in": l1_ids}}, 
+            {"$set": {"status": "Open"}}
         )
         
+        l2_tickets = await db.tickets.find({"updated_team": "L2"}).limit(3).to_list(3)
+        l2_ids = [t["_id"] for t in l2_tickets]
         result2 = await db.tickets.update_many(
-            {"updated_team": "L2"}, 
-            {"$set": {"status": "Pending"}}, 
-            limit=3
+            {"_id": {"$in": l2_ids}}, 
+            {"$set": {"status": "Pending"}}
         )
         
+        business_tickets = await db.tickets.find({"updated_team": "Business Team"}).limit(2).to_list(2)
+        business_ids = [t["_id"] for t in business_tickets]
         result3 = await db.tickets.update_many(
-            {"updated_team": "Business Team"}, 
-            {"$set": {"status": "In Progress"}}, 
-            limit=2
+            {"_id": {"$in": business_ids}}, 
+            {"$set": {"status": "In Progress"}}
         )
         
         return {
