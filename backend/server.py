@@ -753,6 +753,39 @@ async def clear_all_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error clearing data: {str(e)}")
 
+@api_router.post("/create-test-pending-tickets")
+async def create_test_pending_tickets():
+    """Create some test pending tickets for demonstration - useful for testing"""
+    try:
+        # Update some resolved tickets to have pending status for demo
+        result = await db.tickets.update_many(
+            {"updated_team": "L1"}, 
+            {"$set": {"status": "Open"}}, 
+            limit=5
+        )
+        
+        result2 = await db.tickets.update_many(
+            {"updated_team": "L2"}, 
+            {"$set": {"status": "Pending"}}, 
+            limit=3
+        )
+        
+        result3 = await db.tickets.update_many(
+            {"updated_team": "Business Team"}, 
+            {"$set": {"status": "In Progress"}}, 
+            limit=2
+        )
+        
+        return {
+            "message": "Test pending tickets created successfully",
+            "l1_updated": result.modified_count if hasattr(result, 'modified_count') else 0,
+            "l2_updated": result2.modified_count if hasattr(result2, 'modified_count') else 0, 
+            "business_updated": result3.modified_count if hasattr(result3, 'modified_count') else 0
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating test data: {str(e)}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
