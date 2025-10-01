@@ -193,7 +193,7 @@ const Dashboard = ({ data, loading }) => {
               {data.l2_pending || 0}
             </div>
             <div className="text-lg font-semibold text-blue-800 mb-1">L2 Team</div>
-            <div className="text-sm text-blue-600">Open tickets</div>
+            <div className="text-sm text-blue-600">Pending tickets</div>
             <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
               <div 
                 className="bg-blue-500 h-2 rounded-full transition-all duration-500"
